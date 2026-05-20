@@ -335,34 +335,57 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   function ensureSessionVideos() {
-    // Replace the three static <img> in .sessions__strip with autoplay video loops.
-    // Maps clip filenames to figure index (0, 1, 2). All files served from /clips/.
-    var clips = ['/clips/guitar.mp4', '/clips/fisher.mp4', '/clips/guitaaar.mp4'];
-    var figures = document.querySelectorAll('.sessions__strip > figure');
-    if (!figures.length) return;
-    for (var i = 0; i < figures.length && i < clips.length; i++) {
-      var fig = figures[i];
-      if (fig.getAttribute('data-dvocean-video') === '1') continue;
-      var img = fig.querySelector('img');
-      if (!img) continue;
-      var alt = img.getAttribute('alt') || '';
+    var strip = document.querySelector('.sessions__strip');
+    if (!strip) return;
+    if (strip.getAttribute('data-dvocean-videos-added') === '1') return;
+
+    // Wait until the bundle has populated the original 3 photo figures
+    var figures = strip.querySelectorAll(':scope > figure');
+    if (figures.length < 3) return;
+
+    // The third photo (Austin / num 004) gets pushed to the end of row 2
+    var thirdPhoto = figures[2];
+
+    var clips = [
+      { src: '/clips/guitar.mp4',   num: '005', caption: 'serious licks',         alt: 'D\u2019vocean live clip' },
+      { src: '/clips/fisher.mp4',   num: '006', caption: 'Fisher layin it down',  alt: 'Fisher performing' },
+      { src: '/clips/guitaaar.mp4', num: '007', caption: 'friendship',            alt: 'Band moment' }
+    ];
+
+    for (var i = 0; i < clips.length; i++) {
+      var v = clips[i];
+      var fig = document.createElement('figure');
+
       var video = document.createElement('video');
-      video.src = clips[i];
+      video.src = v.src;
       video.autoplay = true;
       video.loop = true;
       video.muted = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('preload', 'auto');
-      video.setAttribute('aria-label', alt);
+      video.setAttribute('aria-label', v.alt);
       video.style.width = '100%';
       video.style.height = '100%';
       video.style.objectFit = 'cover';
       video.style.display = 'block';
-      img.parentNode.replaceChild(video, img);
-      fig.setAttribute('data-dvocean-video', '1');
-      // Kick off playback (some browsers need explicit .play() after attribute set)
+      fig.appendChild(video);
+
+      var cap = document.createElement('figcaption');
+      var num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = v.num;
+      cap.appendChild(num);
+      cap.appendChild(document.createTextNode(v.caption));
+      fig.appendChild(cap);
+
+      // Insert before the 3rd photo, so the order becomes:
+      //   row1: photo(002), photo(003), video(005)
+      //   row2: video(006), video(007), photo(004)
+      strip.insertBefore(fig, thirdPhoto);
       try { video.play(); } catch(e){}
     }
+
+    strip.setAttribute('data-dvocean-videos-added', '1');
   }
 
   function ensureFormspreeHandler() {
