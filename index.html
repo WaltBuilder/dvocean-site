@@ -187,124 +187,109 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 <script id="dvocean-fog-patch-js">
 (function(){
+  // ===== Config =====
   var palette = {
-    highlightColor: 0xff5cc8,   // hot pink
-    midtoneColor:   0x4fffc4,   // mint green
-    lowlightColor:  0x8b5cff,   // vibrant purple
-    baseColor:      0x081a3a,   // deep navy (AZUL)
+    highlightColor: 0xff5cc8,
+    midtoneColor:   0x4fffc4,
+    lowlightColor:  0x8b5cff,
+    baseColor:      0x081a3a,
     blurFactor:     0.55,
     speed:          2.2,
     zoom:           0.9,
     scale:          1.0,
     scaleMobile:    2.0
   };
+  var fontUrl = 'https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&display=swap';
 
-  // --- 1) Inject persistent CSS into <head>. Head survives the bundle's body replacement. ---
-  function injectCSS(){
-    if (document.getElementById('dvocean-persistent-styles')) return;
-    if (!document.head) return setTimeout(injectCSS, 10);
-    // Load Sora font from Google Fonts
-    if (!document.getElementById('dvocean-sora-font')) {
-      var preconnect1 = document.createElement('link');
-      preconnect1.rel = 'preconnect';
-      preconnect1.href = 'https://fonts.googleapis.com';
-      document.head.appendChild(preconnect1);
-      var preconnect2 = document.createElement('link');
-      preconnect2.rel = 'preconnect';
-      preconnect2.href = 'https://fonts.gstatic.com';
-      preconnect2.crossOrigin = 'anonymous';
-      document.head.appendChild(preconnect2);
-      var fontLink = document.createElement('link');
-      fontLink.id = 'dvocean-sora-font';
-      fontLink.rel = 'stylesheet';
-      fontLink.href = 'https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&display=swap';
-      document.head.appendChild(fontLink);
-    }
+  // ===== CSS to inject =====
+  var CSS_RULES = [
+    'html { background-color: #04081a; }',
+    'body { background-color: transparent !important; }',
+    'div#bg { z-index: 0 !important; pointer-events: none !important; }',
+    'body > nav, body > header, body > main, body > footer, body > aside { position: relative; z-index: 10; }',
+    // Brand font override (Sora — SOYA-leaning bold geometric)
+    ':root { --font-brand: "Sora", "Inter", system-ui, sans-serif !important; }',
+    '.hero__title { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.025em !important; filter: none !important; }',
+    '.hero__title .ap, .hero__title .o { font-family: inherit !important; font-weight: inherit !important; filter: none !important; }',
+    '.nav__brand, .nav .brand { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.01em !important; }',
+    '[class*="brand"], .foot__brand { font-family: "Sora", system-ui, sans-serif !important; }',
+    // Section scrim
+    '.section { position: relative; isolation: isolate; }',
+    '.section::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,8,26,0.68) 0%, rgba(4,8,26,0.82) 100%); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: -1; pointer-events: none; }',
+    '.section > * { position: relative; z-index: 1; }',
+    '.foot { position: relative; isolation: isolate; }',
+    '.foot::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,8,26,0.82) 0%, rgba(4,8,26,0.94) 100%); z-index: -1; pointer-events: none; }',
+    '.foot > * { position: relative; z-index: 1; }',
+    // Mobile
+    '@media (max-width: 720px) {',
+    '  .hero__title { font-size: clamp(56px, 16vw, 88px) !important; line-height: 0.95 !important; word-break: break-word; }',
+    '  .hero, header.hero { padding-left: 20px !important; padding-right: 20px !important; }',
+    '  .hero__meta, .hero__tag, .hero__line { font-size: 13px !important; letter-spacing: 0.18em !important; }',
+    '  aside.depth, .depth { display: none !important; }',
+    '  .section { padding: 56px 20px !important; }',
+    '  .section__title, .section h2 { font-size: clamp(28px, 7vw, 40px) !important; line-height: 1.1 !important; }',
+    '  .foot, footer.foot { padding: 40px 20px !important; gap: 18px; }',
+    '  .nav, nav.nav { padding: 14px 18px !important; }',
+    '  .nav__brand, .nav .brand { font-size: 22px !important; }',
+    '  input, textarea, select, button { font-size: 16px !important; min-height: 44px; }',
+    '  .section::before { background: linear-gradient(180deg, rgba(4,8,26,0.78) 0%, rgba(4,8,26,0.92) 100%) !important; }',
+    '  .tracks__row, .track { grid-template-columns: 28px 1fr 56px !important; gap: 12px !important; padding: 12px 0 !important; }',
+    '  .sessions__head { grid-template-columns: 1fr !important; gap: 24px !important; }',
+    '  .sessions__intro p { white-space: normal !important; word-break: break-word; font-size: clamp(20px, 5.4vw, 28px) !important; }',
+    '  .sessions__hero, .sessions__head figure { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; }',
+    '  .sessions__hero img, .sessions__head img { width: 100% !important; height: 100% !important; max-width: 100% !important; object-fit: cover !important; display: block; }',
+    '  .sessions__strip { grid-template-columns: 1fr !important; }',
+    '  .sessions__strip figure { width: 100% !important; max-width: 100% !important; }',
+    '  .polaroid { width: 240px !important; max-width: 88% !important; margin: 0 auto !important; }',
+    '  .polaroid img { width: 100% !important; height: auto !important; }',
+    '  html, body { overflow-x: hidden !important; }',
+    '  .section, main { overflow-x: hidden !important; }',
+    '  .side-text, .nav__rotate { display: none !important; }',
+    '}',
+    '@media (max-width: 420px) {',
+    '  .hero__title { font-size: 50px !important; }',
+    '  .section { padding: 48px 16px !important; }',
+    '  .section__title, .section h2 { font-size: 28px !important; }',
+    '  .nav { padding: 12px 14px !important; }',
+    '  .nav__brand, .nav .brand { font-size: 18px !important; }',
+    '}'
+  ].join('\n');
+
+  // ===== Helpers =====
+  function ensureFontLink() {
+    if (!document.head) return;
+    if (document.getElementById('dvocean-sora-font')) return;
+    var link = document.createElement('link');
+    link.id = 'dvocean-sora-font';
+    link.rel = 'stylesheet';
+    link.href = fontUrl;
+    document.head.appendChild(link);
+  }
+
+  function ensureStyleBlock() {
+    if (!document.head) return;
+    var existing = document.getElementById('dvocean-persistent-styles');
+    if (existing) return;
     var style = document.createElement('style');
     style.id = 'dvocean-persistent-styles';
-    style.textContent = [
-      // Make body transparent so the fog canvas (z-index -1) becomes visible.
-      'html { background-color: #04081a; }',
-      'body { background-color: transparent !important; }',
-      'div#bg { z-index: 0 !important; pointer-events: none !important; }',
-      // Make sure content sits above the bg
-      'body > nav, body > header, body > main, body > footer, body > aside { position: relative; z-index: 10; }',
-      // --- Section scrim: dark overlay BEHIND every .section, but NOT the hero ---
-      '.section { position: relative; isolation: isolate; }',
-      '.section::before {',
-      '  content: ""; position: absolute; inset: 0;',
-      '  background: linear-gradient(180deg, rgba(4,8,26,0.68) 0%, rgba(4,8,26,0.82) 100%);',
-      '  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);',
-      '  z-index: -1; pointer-events: none;',
-      '}',
-      '.section > * { position: relative; z-index: 1; }',
-      // Footer scrim — slightly darker
-      '.foot { position: relative; isolation: isolate; }',
-      '.foot::before {',
-      '  content: ""; position: absolute; inset: 0;',
-      '  background: linear-gradient(180deg, rgba(4,8,26,0.82) 0%, rgba(4,8,26,0.94) 100%);',
-      '  z-index: -1; pointer-events: none;',
-      '}',
-      '.foot > * { position: relative; z-index: 1; }',
-      // ===== Mobile optimizations =====,
-      '@media (max-width: 720px) {',
-      '  .hero__title, .hero__brushstroke, .hero h1, header.hero h1 { font-size: clamp(56px, 18vw, 96px) !important; line-height: 0.95 !important; word-break: break-word; }',
-      '  .hero, header.hero { padding-left: 20px !important; padding-right: 20px !important; }',
-      '  .hero__meta, .hero__tag, .hero__line { font-size: 13px !important; letter-spacing: 0.18em !important; }',
-      '  aside.depth, .depth { display: none !important; }',
-      '  .section { padding: 56px 20px !important; }',
-      '  .section__head, .section__title, .section h2 { font-size: clamp(28px, 8vw, 40px) !important; line-height: 1.1 !important; }',
-      '  .foot, footer.foot { padding: 40px 20px !important; gap: 18px; }',
-      '  .nav, nav.nav { padding: 14px 18px !important; }',
-      '  .nav__brand, .nav .brand { font-size: 22px !important; }',
-      '  input, textarea, select, button { font-size: 16px !important; min-height: 44px; }',
-      '  button, .btn { padding: 12px 20px; }',
-      '  .section::before { background: linear-gradient(180deg, rgba(4,8,26,0.78) 0%, rgba(4,8,26,0.92) 100%) !important; }',
-      '  .tracks__row, .track { grid-template-columns: 28px 1fr 56px !important; gap: 12px !important; padding: 12px 0 !important; }',
-      '  .tracks__row .t, .track .t { font-size: 16px !important; }',
-      '  .polaroid, .sessions__strip figure { width: 100% !important; max-width: 100% !important; }',
-      '  html, body { overflow-x: hidden !important; }',
-      '  .side-text, .nav__rotate { display: none !important; }',
-      // --- Fix sessions section mobile overflow (the band photo cut-off bug) ---,
-      '  .sessions__head { grid-template-columns: 1fr !important; gap: 24px !important; }',
-      '  .sessions__intro p { white-space: normal !important; word-break: break-word; }',
-      '  .sessions__hero, .sessions__head figure { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; }',
-      '  .sessions__hero img, .sessions__head img { width: 100% !important; height: 100% !important; max-width: 100% !important; object-fit: cover !important; display: block; }',
-      '  .sessions__foot { gap: 28px !important; padding-top: 32px !important; }',
-      '  .polaroid { width: 240px !important; max-width: 88% !important; margin: 0 auto !important; }',
-      '  .polaroid img { width: 100% !important; height: auto !important; }',
-      // --- Safety net: clip any phantom horizontal overflow at the section level ---,
-      '  .section { overflow-x: hidden !important; }',
-      '  main { overflow-x: hidden !important; }',
-      '}',
-      '@media (max-width: 420px) {',
-      '  .hero__title, .hero h1 { font-size: 50px !important; }',
-      '  .section { padding: 48px 16px !important; }',
-      '  .section__title, .section h2 { font-size: 28px !important; }',
-      '  .nav { padding: 12px 14px !important; }',
-      '  .nav__brand, .nav .brand { font-size: 18px !important; }',
-      // ===== Brand font override (Sora — SOYA but thinner) =====,
-      ':root { --font-brand: "Sora", "Inter", system-ui, sans-serif !important; }',
-      // Hero D'vocean wordmark,
-      '.hero__title { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.025em !important; filter: none !important; }',
-      // The wavy SVG "o" and apostrophe styled spans inside hero title,
-      '.hero__title .ap, .hero__title .o { font-family: inherit !important; font-weight: inherit !important; }',
-      // Nav brand mark,
-      '.nav__brand, .nav .brand { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.01em !important; }',
-      // Any other place using --font-brand (footer brand, etc.),
-      '[class*="brand"], .foot__brand { font-family: "Sora", system-ui, sans-serif !important; }',
-      '}'
-    ].join('\n');
+    style.textContent = CSS_RULES;
     document.head.appendChild(style);
   }
-  injectCSS();
 
-  // --- 2) Wrap VANTA.FOG so ANY call to it (initial init, visibility-change re-init, etc.) uses our palette ---
-  function wrapVanta(){
-    if (!window.VANTA || !window.VANTA.FOG) return false;
-    if (window.VANTA.FOG.__dvoceanWrapped) return true;
+  function ensureBodyStyles() {
+    if (document.body) document.body.style.backgroundColor = 'transparent';
+    var bg = document.getElementById('bg');
+    if (bg) {
+      bg.style.zIndex = '0';
+      bg.style.pointerEvents = 'none';
+    }
+  }
+
+  function ensureVantaWrapped() {
+    if (!window.VANTA || !window.VANTA.FOG) return;
+    if (window.VANTA.FOG.__dvoceanWrapped) return;
     var orig = window.VANTA.FOG;
-    var wrapped = function(opts){
+    var wrapped = function(opts) {
       var merged = {};
       if (opts) for (var k in opts) merged[k] = opts[k];
       for (var k in palette) merged[k] = palette[k];
@@ -313,8 +298,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     for (var k in orig) wrapped[k] = orig[k];
     wrapped.__dvoceanWrapped = true;
     window.VANTA.FOG = wrapped;
-
-    // If something already created a Vanta instance with original colors, destroy + recreate with ours
+    // Replace any existing instance that was created with original colors
     if (window.VANTA.current && window.VANTA.current.destroy) {
       try {
         var oldOpts = window.VANTA.current.options || {};
@@ -327,37 +311,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.__dvoceanFog = window.VANTA.FOG({ el: el });
       } catch(e){}
     }
-    return true;
   }
 
-  if (!wrapVanta()) {
-    var attempts = 0;
-    var iv = setInterval(function(){
-      attempts++;
-      if (wrapVanta() || attempts > 400) clearInterval(iv);
-    }, 20);
+  function reapplyAll() {
+    try { ensureFontLink(); } catch(e){}
+    try { ensureStyleBlock(); } catch(e){}
+    try { ensureBodyStyles(); } catch(e){}
+    try { ensureVantaWrapped(); } catch(e){}
   }
 
-  // --- 3) Safety net: re-apply inline body styles in case the bundle resets them ---
-  function reinforce(){
-    if (document.body) {
-      document.body.style.backgroundColor = 'transparent';
+  // Run immediately
+  reapplyAll();
+
+  // Keep re-applying for 30 seconds — this is critical because the bundler
+  // replaces document.documentElement on unpack, which wipes head injections
+  // AND reloads vanta.js (re-defining window.VANTA without our wrapper).
+  var ticks = 0;
+  var iv = setInterval(function() {
+    reapplyAll();
+    ticks++;
+    if (ticks > 120) clearInterval(iv); // 30s @ 250ms
+  }, 250);
+
+  // Slower long-tail just in case
+  setTimeout(function() {
+    var iv2 = setInterval(reapplyAll, 2000);
+    setTimeout(function() { clearInterval(iv2); }, 60000);
+  }, 30000);
+
+  // Re-apply on visibility change
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      setTimeout(reapplyAll, 50);
+      setTimeout(reapplyAll, 500);
     }
-    var bg = document.getElementById('bg');
-    if (bg) {
-      bg.style.zIndex = '0';
-      bg.style.pointerEvents = 'none';
-    }
-  }
-  // Run a few times across the unpack window to cover any timing
-  reinforce();
-  setTimeout(reinforce, 100);
-  setTimeout(reinforce, 500);
-  setTimeout(reinforce, 1500);
-
-  // Also re-apply when tab visibility changes
-  document.addEventListener('visibilitychange', function(){
-    if (!document.hidden) setTimeout(reinforce, 50);
   });
 })();
 </script>
