@@ -372,8 +372,35 @@ document.addEventListener('DOMContentLoaded', async function() {
       e.preventDefault();
       var note = document.getElementById('cf-note');
       var btn = form.querySelector('button[type=\"submit\"]');
-      if (note) note.textContent = 'sending...';
-      if (btn) btn.disabled = true;
+      var originalLabel = btn ? btn.textContent : 'send it';
+
+      function setBtn(text, opts) {
+        if (!btn) return;
+        btn.textContent = text;
+        btn.disabled = !!(opts && opts.disabled);
+        btn.style.transition = 'background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease';
+        if (opts && opts.state === 'sending') {
+          btn.style.opacity = '0.7';
+        } else if (opts && opts.state === 'sent') {
+          btn.style.backgroundColor = 'rgba(79, 255, 196, 0.18)';
+          btn.style.borderColor = 'rgba(79, 255, 196, 0.5)';
+          btn.style.color = '#4fffc4';
+          btn.style.opacity = '1';
+        } else if (opts && opts.state === 'error') {
+          btn.style.backgroundColor = 'rgba(255, 92, 200, 0.15)';
+          btn.style.borderColor = 'rgba(255, 92, 200, 0.5)';
+          btn.style.color = '#ff5cc8';
+          btn.style.opacity = '1';
+        } else {
+          btn.style.backgroundColor = '';
+          btn.style.borderColor = '';
+          btn.style.color = '';
+          btn.style.opacity = '1';
+        }
+      }
+
+      setBtn('sending...', { disabled: true, state: 'sending' });
+      if (note) note.textContent = '';
 
       var formData = new FormData(form);
       fetch(form.getAttribute('action'), {
@@ -383,14 +410,16 @@ document.addEventListener('DOMContentLoaded', async function() {
       }).then(function(res) {
         if (res.ok) {
           form.reset();
-          if (note) note.textContent = 'sent. we\'ll write back.';
+          setBtn('sent — we\'ll write back', { disabled: true, state: 'sent' });
+          // After 6 seconds, restore the button to its original state so they can send another
+          setTimeout(function(){ setBtn(originalLabel, { state: 'idle' }); }, 6000);
         } else {
-          if (note) note.textContent = 'hmm — something went wrong. try again?';
+          setBtn('try again', { disabled: false, state: 'error' });
+          setTimeout(function(){ setBtn(originalLabel, { state: 'idle' }); }, 4000);
         }
       }).catch(function() {
-        if (note) note.textContent = 'network error. try again?';
-      }).then(function() {
-        if (btn) btn.disabled = false;
+        setBtn('network error — try again', { disabled: false, state: 'error' });
+        setTimeout(function(){ setBtn(originalLabel, { state: 'idle' }); }, 4000);
       });
     });
   }
