@@ -223,6 +223,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     '.foot > * { position: relative; z-index: 1; }',
     'aside.depth, .depth { display: none !important; }',
     '.section__num { display: none !important; }',
+    // Tracklist when displayed inside the .release column (replacing Spotify widget)
+    '.release .tracks { margin: 24px 0; padding: 0; list-style: none; }',
+    '.release .tracks__row { display: grid; grid-template-columns: 36px 1fr 60px; gap: 16px; padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.1); align-items: center; }',
+    '.release .tracks__row:first-child { border-top: none; }',
+    '.release .tracks__row .n { color: rgba(255,255,255,0.4); font-family: var(--font-mono, monospace); font-size: 11px; letter-spacing: 0.14em; }',
+    '.release .tracks__row .t { color: rgba(255,255,255,0.92); font-size: 16px; }',
+    '.release .tracks__row .d { color: rgba(255,255,255,0.45); font-family: var(--font-mono, monospace); font-size: 12px; text-align: right; letter-spacing: 0.06em; }',
     '.contact__intro { white-space: nowrap !important; max-width: none !important; font-size: clamp(18px, 2.4vw, 30px) !important; text-wrap: nowrap !important; }',
     // On mobile let contact intro wrap with comfortable size
     '@media (max-width: 720px) { .contact__intro { white-space: normal !important; font-size: clamp(20px, 5.2vw, 28px) !important; line-height: 1.3 !important; word-break: break-word; } }',
@@ -322,11 +329,37 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  function ensureReleaseLayout() {
+    // Remove the Spotify embed (we replace it with the tracklist).
+    var player = document.getElementById('listen');
+    if (player) {
+      try { player.remove(); } catch(e){}
+    }
+    // Move the .tracks <ol> up into the .release column,
+    // placing it after .release__copy (or after head if copy missing).
+    var tracks = document.querySelector('.tracks');
+    var release = document.querySelector('.release');
+    if (!tracks || !release) return;
+    // Only move if it's not already a child of .release
+    if (tracks.parentElement !== release) {
+      var copy = release.querySelector('.release__copy');
+      var dsp = release.querySelector('.dsp');
+      if (copy && copy.nextSibling) {
+        release.insertBefore(tracks, copy.nextSibling);
+      } else if (dsp) {
+        release.insertBefore(tracks, dsp);
+      } else {
+        release.appendChild(tracks);
+      }
+    }
+  }
+
   function reapplyAll() {
     try { ensureFontLink(); } catch(e){}
     try { ensureStyleBlock(); } catch(e){}
     try { ensureBodyStyles(); } catch(e){}
     try { ensureVantaWrapped(); } catch(e){}
+    try { ensureReleaseLayout(); } catch(e){}
   }
 
   // Run immediately
