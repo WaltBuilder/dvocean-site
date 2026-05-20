@@ -203,6 +203,23 @@ document.addEventListener('DOMContentLoaded', async function() {
   function injectCSS(){
     if (document.getElementById('dvocean-persistent-styles')) return;
     if (!document.head) return setTimeout(injectCSS, 10);
+    // Load Sora font from Google Fonts
+    if (!document.getElementById('dvocean-sora-font')) {
+      var preconnect1 = document.createElement('link');
+      preconnect1.rel = 'preconnect';
+      preconnect1.href = 'https://fonts.googleapis.com';
+      document.head.appendChild(preconnect1);
+      var preconnect2 = document.createElement('link');
+      preconnect2.rel = 'preconnect';
+      preconnect2.href = 'https://fonts.gstatic.com';
+      preconnect2.crossOrigin = 'anonymous';
+      document.head.appendChild(preconnect2);
+      var fontLink = document.createElement('link');
+      fontLink.id = 'dvocean-sora-font';
+      fontLink.rel = 'stylesheet';
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&display=swap';
+      document.head.appendChild(fontLink);
+    }
     var style = document.createElement('style');
     style.id = 'dvocean-persistent-styles';
     style.textContent = [
@@ -255,6 +272,16 @@ document.addEventListener('DOMContentLoaded', async function() {
       '  .section__title, .section h2 { font-size: 28px !important; }',
       '  .nav { padding: 12px 14px !important; }',
       '  .nav__brand, .nav .brand { font-size: 18px !important; }',
+      // ===== Brand font override (Sora — SOYA but thinner) =====,
+      ':root { --font-brand: "Sora", "Inter", system-ui, sans-serif !important; }',
+      // Hero D'vocean wordmark,
+      '.hero__title { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.025em !important; filter: none !important; }',
+      // The wavy SVG "o" and apostrophe styled spans inside hero title,
+      '.hero__title .ap, .hero__title .o { font-family: inherit !important; font-weight: inherit !important; }',
+      // Nav brand mark,
+      '.nav__brand, .nav .brand { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.01em !important; }',
+      // Any other place using --font-brand (footer brand, etc.),
+      '[class*="brand"], .foot__brand { font-family: "Sora", system-ui, sans-serif !important; }',
       '}'
     ].join('\n');
     document.head.appendChild(style);
