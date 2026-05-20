@@ -209,10 +209,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     'body > nav, body > header, body > main, body > footer, body > aside { position: relative; z-index: 10; }',
     // Brand font override (Sora — SOYA-leaning bold geometric)
     ':root { --font-brand: "Sora", "Inter", system-ui, sans-serif !important; }',
-    '.hero__title { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.025em !important; filter: none !important; }',
-    '.hero__title .ap, .hero__title .o { font-family: inherit !important; font-weight: inherit !important; filter: none !important; }',
-    '.nav__brand, .nav .brand { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.01em !important; }',
-    '[class*="brand"], .foot__brand { font-family: "Sora", system-ui, sans-serif !important; }',
+    '.hero__title { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; font-style: italic !important; letter-spacing: -0.025em !important; filter: none !important; }',
+    '.hero__title .ap, .hero__title .o { font-family: inherit !important; font-weight: inherit !important; font-style: italic !important; filter: none !important; }',
+    '.hero__title .o::after { display: none !important; content: none !important; }',
+    '.nav__brand, .nav .brand { font-family: "Sora", system-ui, sans-serif !important; font-weight: 700 !important; font-style: italic !important; letter-spacing: -0.01em !important; }',
+    '[class*="brand"], .foot__brand { font-family: "Sora", system-ui, sans-serif !important; font-style: italic !important; }',
     // Section scrim
     '.section { position: relative; isolation: isolate; }',
     '.section::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,8,26,0.68) 0%, rgba(4,8,26,0.82) 100%); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: -1; pointer-events: none; }',
