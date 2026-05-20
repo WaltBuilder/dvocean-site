@@ -334,6 +334,67 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  function ensureFormspreeHandler() {
+    var form = document.getElementById('cf');
+    if (!form) return;
+    if (form.getAttribute('data-dvocean-wired') === '1') return;
+
+    // Clone the form to wipe the bundle's mailto submit handler, then re-attach our own.
+    // cloneNode(true) copies the DOM tree and input attributes; live `value` on inputs is
+    // re-set below in case the user had typed before our wiring (rare — contact section
+    // is at the bottom and we wire within ~250ms of bundle unpack).
+    var oldInputs = form.querySelectorAll('input, textarea, select');
+    var values = {};
+    for (var i = 0; i < oldInputs.length; i++) {
+      values[oldInputs[i].id || oldInputs[i].name || i] = oldInputs[i].value;
+    }
+    var clone = form.cloneNode(true);
+    form.parentNode.replaceChild(clone, form);
+    form = clone;
+    var newInputs = form.querySelectorAll('input, textarea, select');
+    for (var j = 0; j < newInputs.length; j++) {
+      var key = newInputs[j].id || newInputs[j].name || j;
+      if (values[key]) newInputs[j].value = values[key];
+    }
+
+    form.setAttribute('data-dvocean-wired', '1');
+    form.setAttribute('action', 'https://formspree.io/f/xredpaay');
+    form.setAttribute('method', 'POST');
+
+    // Replace misleading default 'opens your mail' note
+    var initialNote = document.getElementById('cf-note');
+    if (initialNote && !initialNote.getAttribute('data-dvocean-note')) {
+      initialNote.textContent = 'we reply within 48 hrs.';
+      initialNote.setAttribute('data-dvocean-note', '1');
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var note = document.getElementById('cf-note');
+      var btn = form.querySelector('button[type=\"submit\"]');
+      if (note) note.textContent = 'sending...';
+      if (btn) btn.disabled = true;
+
+      var formData = new FormData(form);
+      fetch(form.getAttribute('action'), {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      }).then(function(res) {
+        if (res.ok) {
+          form.reset();
+          if (note) note.textContent = 'sent. we\'ll write back.';
+        } else {
+          if (note) note.textContent = 'hmm — something went wrong. try again?';
+        }
+      }).catch(function() {
+        if (note) note.textContent = 'network error. try again?';
+      }).then(function() {
+        if (btn) btn.disabled = false;
+      });
+    });
+  }
+
   function ensureReleaseLayout() {
     // Remove the Spotify embed (we replace it with the tracklist).
     var player = document.getElementById('listen');
@@ -365,6 +426,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     try { ensureBodyStyles(); } catch(e){}
     try { ensureVantaWrapped(); } catch(e){}
     try { ensureReleaseLayout(); } catch(e){}
+    try { ensureFormspreeHandler(); } catch(e){}
   }
 
   // Run immediately
