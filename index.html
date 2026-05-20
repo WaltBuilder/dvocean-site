@@ -334,6 +334,37 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  function ensureSessionVideos() {
+    // Replace the three static <img> in .sessions__strip with autoplay video loops.
+    // Maps clip filenames to figure index (0, 1, 2). All files served from /clips/.
+    var clips = ['/clips/guitar.mp4', '/clips/fisher.mp4', '/clips/guitaaar.mp4'];
+    var figures = document.querySelectorAll('.sessions__strip > figure');
+    if (!figures.length) return;
+    for (var i = 0; i < figures.length && i < clips.length; i++) {
+      var fig = figures[i];
+      if (fig.getAttribute('data-dvocean-video') === '1') continue;
+      var img = fig.querySelector('img');
+      if (!img) continue;
+      var alt = img.getAttribute('alt') || '';
+      var video = document.createElement('video');
+      video.src = clips[i];
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('preload', 'auto');
+      video.setAttribute('aria-label', alt);
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
+      video.style.display = 'block';
+      img.parentNode.replaceChild(video, img);
+      fig.setAttribute('data-dvocean-video', '1');
+      // Kick off playback (some browsers need explicit .play() after attribute set)
+      try { video.play(); } catch(e){}
+    }
+  }
+
   function ensureFormspreeHandler() {
     var form = document.getElementById('cf');
     if (!form) return;
@@ -455,6 +486,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     try { ensureBodyStyles(); } catch(e){}
     try { ensureVantaWrapped(); } catch(e){}
     try { ensureReleaseLayout(); } catch(e){}
+    try { ensureSessionVideos(); } catch(e){}
     try { ensureFormspreeHandler(); } catch(e){}
   }
 
