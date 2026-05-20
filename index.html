@@ -216,10 +216,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     '[class*="brand"], .foot__brand { font-family: "Sora", system-ui, sans-serif !important; font-style: italic !important; }',
     // Section scrim
     '.section { position: relative; isolation: isolate; }',
-    '.section::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,8,26,0.68) 0%, rgba(4,8,26,0.82) 100%); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: -1; pointer-events: none; }',
+    '.section::before { content: ""; position: absolute; inset: 0 0 3px 0; background: linear-gradient(180deg, rgba(4,8,26,0.68) 0%, rgba(4,8,26,0.82) 100%); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: -1; pointer-events: none; }',
     '.section > * { position: relative; z-index: 1; }',
     '.foot { position: relative; isolation: isolate; }',
-    '.foot::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,8,26,0.82) 0%, rgba(4,8,26,0.94) 100%); z-index: -1; pointer-events: none; }',
+    '.foot::before { content: ""; position: absolute; inset: 3px 0 3px 0; background: linear-gradient(180deg, rgba(4,8,26,0.82) 0%, rgba(4,8,26,0.94) 100%); z-index: -1; pointer-events: none; }',
     '.foot > * { position: relative; z-index: 1; }',
     'aside.depth, .depth { display: none !important; }',
     '.section__num { display: none !important; }',
