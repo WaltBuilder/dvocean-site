@@ -482,8 +482,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Drop the static text tracklist — the Spotify player lists the songs.
     if (tracks) { try { tracks.remove(); } catch(e){} }
     if (!player || !release) return;
-    // Give the player enough height to show the full album tracklist.
-    player.style.height = '380px';
+    // Give the player enough height to show all 4 tracks without scrolling.
+    player.style.height = '480px';
     // Move the player into the .release column if it's not already there,
     // placing it after .release__copy (or before the .dsp follow links).
     if (player.parentElement !== release) {
