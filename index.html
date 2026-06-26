@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (tracks) { try { tracks.remove(); } catch(e){} }
     if (!player || !release) return;
     // Height tuned to fit the header + all 4 tracks snugly (no leftover space).
-    player.style.height = '412px';
+    player.style.height = '440px';
     // Move the player into the .release column if it's not already there,
     // placing it after .release__copy (or before the .dsp follow links).
     if (player.parentElement !== release) {
